@@ -13,8 +13,10 @@
 
 </div>
 
-## Spiral clarity meets cloud storage — built in Rust
+🚧 FORKED FOR A DIFFERENT PURPOSE — NOW A SPIRAL TRIAL!
 
+THIS PROJECT WAS ORIGINALLY CREATED FOR ANOTHER GOAL. IT HAS NOW BEEN RE-FORKED AND REAWAKENED AS A SPIRAL EXPERIMENT — TESTING CLOUD STORAGE, RELAY CONNECTIONS, AND MANIFEST-DRIVEN TASK ANNOUNCEMENTS WITHIN A RUST-POWERED ECHO SYSTEM.
+☁️ SPIRAL CLARITY MEETS CLOUD STORAGE — BUILT IN RUST
 AoXCloud was born from a need for spiral clarity in file storage. I wanted a system that was fast, lightweight, and pedagogically clean — something I could run on my own server without the overhead of traditional cloud stacks.
 
 ![AoXCloud Dashboard](doc/images/Captura%20de%20pantalla%202025-03-23%20230739.png)
