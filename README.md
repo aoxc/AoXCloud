@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="static/Copilot_20251030_135412.png" alt="AoXCloud" width="375" />
+  <img src="static/Copilot_20251030_142750.png" alt="AoXCloud" width="375" />
 </p>
 
 <div align="center">
