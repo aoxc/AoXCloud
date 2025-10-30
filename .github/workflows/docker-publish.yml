@@ -1,124 +1,68 @@
 name: Docker Hub Release
 
-# Trigger the workflow when a release is published
 on:
   release:
     types: [published]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to build (optional)'
+        description: 'Versión del release'
         required: false
         default: '0.1.0-rc1'
 
 jobs:
-  # Preparar matrices de compilación
-  prepare:
+  build-and-push:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-      version: ${{ steps.get-version.outputs.version }}
-    steps:
-      - id: set-matrix
-        run: echo "matrix={\"arch\":[\"amd64\",\"arm64\"]}" >> $GITHUB_OUTPUT
-      
-      - id: get-version
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-
-  # Compilar por separado para cada arquitectura
-  build:
-    needs: prepare
     strategy:
-      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
-      fail-fast: false
-    runs-on: ${{ matrix.arch == 'arm64' && 'arm64' || 'ubuntu-latest' }}
+      matrix:
+        arch: [amd64, arm64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Configurar Docker
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Login a DockerHub
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Cargar caché de dependencias de Rust
-      - name: Cache Cargo registry
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ matrix.arch }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-${{ matrix.arch }}-
-      
-      # Extraer metadatos
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/oxicloud
-          flavor: |
-            latest=false
-          tags: |
-            type=raw,value=${{ needs.prepare.outputs.version }}
-            type=raw,value=sha-${{ github.sha }}
+      - name: Set version tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
 
-      # Construir y publicar imagen para esta arquitectura específica
-      - name: Build and push by digest
-        id: build
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/${{ matrix.arch }}
           push: true
-          provenance: false
+          tags: |
+            diocrafts/oxicloud:${{ env.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            VERSION=${{ needs.prepare.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ secrets.DOCKERHUB_USERNAME }}/oxicloud,push-by-digest=true,name-canonical=true
-          
-      # Guardar el digest para el paso de manifiesto
-      - name: Export digest
-        run: |
-          mkdir -p /tmp/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${digest#sha256:}"
-          echo ${{ matrix.arch }} > "/tmp/digests/${digest#sha256:}"
+            VERSION=${{ env.VERSION }}
 
-      # Subir los digests para el siguiente trabajo
-      - name: Upload digest
-        uses: actions/upload-artifact@v3
-        with:
-          name: digests-${{ matrix.arch }}
-          path: /tmp/digests/*
-          if-no-files-found: error
-          retention-days: 1
-
-  # Crear manifiesto multi-arquitectura
-  merge:
-    needs: [prepare, build]
+  # Crear el manifiesto multi-arch una vez todas las imágenes estén listas
+  manifest:
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Download digests
-        uses: actions/download-artifact@v3
-        with:
-          path: /tmp/digests
-          pattern: digests-*
-          merge-multiple: true
+      - name: Set version tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -129,29 +73,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Create and push manifest lists
-        working-directory: /tmp/digests
+      - name: Create and Push Manifest
         run: |
-          VERSION="${{ needs.prepare.outputs.version }}"
-          SHA_TAG="sha-${{ github.sha }}"
-          
-          # Crear la lista de digest para la manifestación
-          DIGEST_ARGS=""
-          for digest_file in $(ls -1); do
-            ARCH=$(cat "$digest_file")
-            DIGEST_ARGS="$DIGEST_ARGS ${{ secrets.DOCKERHUB_USERNAME }}/oxicloud@sha256:$digest_file"
-          done
-          
-          # Crear los manifiestos para version específica y sha
-          docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/oxicloud:${VERSION} ${DIGEST_ARGS}
-          docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/oxicloud:${SHA_TAG} ${DIGEST_ARGS}
-          
-          # Si es una versión de lanzamiento, también etiquetar como latest
-          if [[ "${VERSION}" != *"-"* ]]; then
-            docker buildx imagetools create -t ${{ secrets.DOCKERHUB_USERNAME }}/oxicloud:latest ${DIGEST_ARGS}
-          fi
-
-      # Post successful build notification
-      - name: Post Success Notification
-        run: |
-          echo "🚢 Docker multi-arch image for version ${{ needs.prepare.outputs.version }} has been successfully pushed to Docker Hub!"
+          docker buildx imagetools create \
+            -t diocrafts/oxicloud:${{ env.VERSION }} \
+            diocrafts/oxicloud:${{ env.VERSION }}@linux/amd64 \
+            diocrafts/oxicloud:${{ env.VERSION }}@linux/arm64
