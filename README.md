@@ -1,4 +1,3 @@
-```html
 <p align="center">
 <img src="static/Copilot_20251030_135412.png" alt="AoXCloud Logo" width="375" />
 </p>
@@ -45,6 +44,7 @@ AoXCloud is a lightweight, high-performance file storage platform built in Rust.
 🛠️ Getting Started:  
 **Prerequisites:** Rust ≥ 1.70, PostgreSQL ≥ 13, 512MB RAM (1GB+ recommended)
 
+```bash
 # Clone the repository
 git clone https://github.com/aoxc/AoXCloud.git
 cd AoXCloud
@@ -66,6 +66,7 @@ Server runs at http://localhost:8085
 🌐 Interfaces Layer — API routes and web controllers
 
 🚧 Development Workflow:
+
 cargo build           # Compile project
 cargo run             # Run locally
 cargo check           # Quick compile check
@@ -90,10 +91,18 @@ RUST_LOG=debug cargo run  # Debug mode
 🗑️ Trash bin support (in progress)
 
 See TODO-LIST.md
-See CONTRIBUTING.md
-See CODE_OF_CONDUCT.md
+
+for active development priorities.
+
+🤝 Contributing:
+We welcome contributions! See CONTRIBUTING.md
+and CODE_OF_CONDUCT.md
+
+for guidelines.
 
 📜 License:
 AoXCloud is licensed under MIT
+
+.
 
 Built with spiral clarity by a developer who wanted better file storage. Let’s echo forward together 🌀
