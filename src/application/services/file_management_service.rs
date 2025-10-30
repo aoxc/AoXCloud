@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use async_trait::async_trait;
+use std::sync::Arc;
 
 use crate::application::dtos::file_dto::FileDto;
 use crate::application::ports::file_ports::FileManagementUseCase;
@@ -16,32 +16,49 @@ impl FileManagementService {
     pub fn new(file_repository: Arc<dyn FileWritePort>) -> Self {
         Self { file_repository }
     }
-    
+
     /// Creates a stub for testing
     pub fn default_stub() -> Self {
         Self {
-            file_repository: Arc::new(crate::infrastructure::repositories::FileFsWriteRepository::default_stub())
+            file_repository: Arc::new(
+                crate::infrastructure::repositories::FileFsWriteRepository::default_stub(),
+            ),
         }
     }
 }
 
 #[async_trait]
 impl FileManagementUseCase for FileManagementService {
-    async fn move_file(&self, file_id: &str, folder_id: Option<String>) -> Result<FileDto, DomainError> {
-        tracing::info!("Moving file with ID: {} to folder: {:?}", file_id, folder_id);
-        
-        let moved_file = self.file_repository.move_file(file_id, folder_id).await
+    async fn move_file(
+        &self,
+        file_id: &str,
+        folder_id: Option<String>,
+    ) -> Result<FileDto, DomainError> {
+        tracing::info!(
+            "Moving file with ID: {} to folder: {:?}",
+            file_id,
+            folder_id
+        );
+
+        let moved_file = self
+            .file_repository
+            .move_file(file_id, folder_id)
+            .await
             .map_err(|e| {
                 tracing::error!("Error moving file (ID: {}): {}", file_id, e);
                 e
             })?;
-        
-        tracing::info!("File moved successfully: {} (ID: {}) to folder: {:?}", 
-                       moved_file.name(), moved_file.id(), moved_file.folder_id());
-        
+
+        tracing::info!(
+            "File moved successfully: {} (ID: {}) to folder: {:?}",
+            moved_file.name(),
+            moved_file.id(),
+            moved_file.folder_id()
+        );
+
         Ok(FileDto::from(moved_file))
     }
-    
+
     async fn delete_file(&self, id: &str) -> Result<(), DomainError> {
         self.file_repository.delete_file(id).await
     }

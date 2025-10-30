@@ -1,9 +1,9 @@
-use serde::{Serialize, Deserialize};
-use chrono::{DateTime, Utc};
-use uuid::Uuid;
-use std::collections::HashMap;
 use crate::domain::entities::calendar::Calendar;
 use crate::domain::entities::calendar_event::CalendarEvent;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use uuid::Uuid;
 
 /// DTO for calendar data transfer
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -11,8 +11,8 @@ use serde_json::json;
 
 use crate::{
     application::{
-        dtos::share_dto::{CreateShareDto, UpdateShareDto}, 
-        ports::share_ports::ShareUseCase
+        dtos::share_dto::{CreateShareDto, UpdateShareDto},
+        ports::share_ports::ShareUseCase,
     },
     common::errors::ErrorKind,
 };
@@ -74,10 +74,17 @@ pub async fn get_user_shares(
     let user_id = "default-user";
     let page = query.page.unwrap_or(1);
     let per_page = query.per_page.unwrap_or(20);
-    
-    match share_use_case.get_user_shared_links(&user_id, page, per_page).await {
+
+    match share_use_case
+        .get_user_shared_links(&user_id, page, per_page)
+        .await
+    {
         Ok(shares) => (StatusCode::OK, Json(shares)).into_response(),
-        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": err.to_string() }))).into_response()
+        Err(err) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": err.to_string() })),
+        )
+            .into_response(),
     }
 }
 
@@ -126,7 +133,7 @@ pub async fn access_shared_item(
 ) -> impl IntoResponse {
     // Register the access
     let _ = share_use_case.register_shared_link_access(&token).await;
-    
+
     // Get the shared link
     match share_use_case.get_shared_link_by_token(&token).await {
         Ok(item) => (StatusCode::OK, Json(item)).into_response(),
@@ -137,17 +144,21 @@ pub async fn access_shared_item(
                     if err.message.contains("expired") {
                         StatusCode::GONE // HTTP 410 Gone for expired links
                     } else if err.message.contains("password") {
-                        return (StatusCode::UNAUTHORIZED, Json(json!({ 
-                            "error": "Password required", 
-                            "requiresPassword": true 
-                        }))).into_response();
+                        return (
+                            StatusCode::UNAUTHORIZED,
+                            Json(json!({
+                                "error": "Password required",
+                                "requiresPassword": true
+                            })),
+                        )
+                            .into_response();
                     } else {
                         StatusCode::FORBIDDEN
                     }
-                },
+                }
                 _ => StatusCode::INTERNAL_SERVER_ERROR,
             };
-            
+
             (status, Json(json!({ "error": err.to_string() }))).into_response()
         }
     }
@@ -159,7 +170,10 @@ pub async fn verify_shared_item_password(
     Path(token): Path<String>,
     Json(req): Json<VerifyPasswordRequest>,
 ) -> impl IntoResponse {
-    match share_use_case.verify_shared_link_password(&token, &req.password).await {
+    match share_use_case
+        .verify_shared_link_password(&token, &req.password)
+        .await
+    {
         Ok(item) => (StatusCode::OK, Json(item)).into_response(),
         Err(err) => {
             let status = match err.kind {
@@ -172,7 +186,7 @@ pub async fn verify_shared_item_password(
                     } else {
                         StatusCode::FORBIDDEN
                     }
-                },
+                }
                 _ => StatusCode::INTERNAL_SERVER_ERROR,
             };
             (status, Json(json!({ "error": err.to_string() }))).into_response()

@@ -6,10 +6,10 @@ use thiserror::Error;
 pub enum I18nError {
     #[error("Translation key not found: {0}")]
     KeyNotFound(String),
-    
+
     #[error("Invalid locale: {0}")]
     InvalidLocale(String),
-    
+
     #[error("Error loading translations: {0}")]
     LoadError(String),
 }
@@ -32,7 +32,7 @@ impl Locale {
             Locale::Spanish => "es",
         }
     }
-    
+
     /// Create from locale code string
     pub fn from_str(code: &str) -> Option<Self> {
         match code.to_lowercase().as_str() {
@@ -41,7 +41,7 @@ impl Locale {
             _ => None,
         }
     }
-    
+
     /// Get default locale
     pub fn default() -> Self {
         Locale::English
@@ -53,13 +53,13 @@ impl Locale {
 pub trait I18nService: Send + Sync + 'static {
     /// Get a translation for a key and locale
     async fn translate(&self, key: &str, locale: Locale) -> I18nResult<String>;
-    
+
     /// Load translations for a locale
     async fn load_translations(&self, locale: Locale) -> I18nResult<()>;
-    
+
     /// Get available locales
     async fn available_locales(&self) -> Vec<Locale>;
-    
+
     /// Check if a locale is supported
     #[allow(dead_code)]
     async fn is_supported(&self, locale: Locale) -> bool;

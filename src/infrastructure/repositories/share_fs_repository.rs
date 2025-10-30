@@ -7,9 +7,7 @@ use tokio::{fs, io};
 use crate::{
     application::ports::share_ports::ShareStoragePort,
     common::{config::AppConfig, errors::DomainError},
-    domain::{
-        entities::share::{Share, ShareItemType},
-    },
+    domain::entities::share::{Share, ShareItemType},
 };
 
 // Estructura para almacenar en el sistema de archivos
@@ -74,8 +72,8 @@ impl ShareFsRepository {
 
     /// Convierte un registro del sistema de archivos a una entidad de dominio
     fn to_entity(&self, record: &ShareRecord) -> Share {
-        let item_type = ShareItemType::try_from(record.item_type.as_str())
-            .unwrap_or(ShareItemType::File);
+        let item_type =
+            ShareItemType::try_from(record.item_type.as_str()).unwrap_or(ShareItemType::File);
 
         let permissions = crate::domain::entities::share::SharePermissions::new(
             record.permissions_read,
@@ -119,7 +117,9 @@ impl ShareFsRepository {
 #[async_trait]
 impl ShareStoragePort for ShareFsRepository {
     async fn save_share(&self, share: &Share) -> Result<Share, DomainError> {
-        let mut shares = self.read_shares().await
+        let mut shares = self
+            .read_shares()
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         // Verifica si el enlace ya existe
@@ -135,21 +135,22 @@ impl ShareStoragePort for ShareFsRepository {
             shares.push(record);
         }
 
-        self.write_shares(&shares).await
+        self.write_shares(&shares)
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         Ok(share.clone())
     }
 
     async fn find_share_by_id(&self, id: &str) -> Result<Share, DomainError> {
-        let shares = self.read_shares().await
+        let shares = self
+            .read_shares()
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
-        let share = shares.iter()
-            .find(|s| s.id == id)
-            .ok_or_else(|| {
-                DomainError::not_found("Share", format!("Share with ID {} not found", id))
-            });
+        let share = shares.iter().find(|s| s.id == id).ok_or_else(|| {
+            DomainError::not_found("Share", format!("Share with ID {} not found", id))
+        });
 
         match share {
             Ok(record) => Ok(self.to_entity(record)),
@@ -158,14 +159,14 @@ impl ShareStoragePort for ShareFsRepository {
     }
 
     async fn find_share_by_token(&self, token: &str) -> Result<Share, DomainError> {
-        let shares = self.read_shares().await
+        let shares = self
+            .read_shares()
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
-        let share = shares.iter()
-            .find(|s| s.token == token)
-            .ok_or_else(|| {
-                DomainError::not_found("Share", format!("Share with token {} not found", token))
-            });
+        let share = shares.iter().find(|s| s.token == token).ok_or_else(|| {
+            DomainError::not_found("Share", format!("Share with token {} not found", token))
+        });
 
         match share {
             Ok(record) => Ok(self.to_entity(record)),
@@ -173,12 +174,19 @@ impl ShareStoragePort for ShareFsRepository {
         }
     }
 
-    async fn find_shares_by_item(&self, item_id: &str, item_type: &ShareItemType) -> Result<Vec<Share>, DomainError> {
-        let shares = self.read_shares().await
+    async fn find_shares_by_item(
+        &self,
+        item_id: &str,
+        item_type: &ShareItemType,
+    ) -> Result<Vec<Share>, DomainError> {
+        let shares = self
+            .read_shares()
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         let type_str = item_type.to_string();
-        let result: Vec<Share> = shares.iter()
+        let result: Vec<Share> = shares
+            .iter()
             .filter(|s| s.item_id == item_id && s.item_type == type_str)
             .map(|record| self.to_entity(record))
             .collect();
@@ -187,27 +195,37 @@ impl ShareStoragePort for ShareFsRepository {
     }
 
     async fn update_share(&self, share: &Share) -> Result<Share, DomainError> {
-        let mut shares = self.read_shares().await
+        let mut shares = self
+            .read_shares()
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         // Busca el índice del enlace a actualizar
-        let index = shares.iter().position(|s| s.id == share.id)
+        let index = shares
+            .iter()
+            .position(|s| s.id == share.id)
             .ok_or_else(|| {
-                DomainError::not_found("Share", format!("Share with ID {} not found for update", share.id))
+                DomainError::not_found(
+                    "Share",
+                    format!("Share with ID {} not found for update", share.id),
+                )
             })?;
 
         // Actualiza el registro
         shares[index] = self.to_record(share);
 
         // Guarda los cambios
-        self.write_shares(&shares).await
+        self.write_shares(&shares)
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         Ok(share.clone())
     }
 
     async fn delete_share(&self, id: &str) -> Result<(), DomainError> {
-        let mut shares = self.read_shares().await
+        let mut shares = self
+            .read_shares()
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         // Encuentra el índice del enlace a eliminar
@@ -216,22 +234,34 @@ impl ShareStoragePort for ShareFsRepository {
 
         // Si no se eliminó ningún enlace, significa que no existía
         if shares.len() == initial_len {
-            return Err(DomainError::not_found("Share", format!("Share with ID {} not found for deletion", id)));
+            return Err(DomainError::not_found(
+                "Share",
+                format!("Share with ID {} not found for deletion", id),
+            ));
         }
 
         // Guarda los cambios
-        self.write_shares(&shares).await
+        self.write_shares(&shares)
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         Ok(())
     }
 
-    async fn find_shares_by_user(&self, user_id: &str, offset: usize, limit: usize) -> Result<(Vec<Share>, usize), DomainError> {
-        let shares = self.read_shares().await
+    async fn find_shares_by_user(
+        &self,
+        user_id: &str,
+        offset: usize,
+        limit: usize,
+    ) -> Result<(Vec<Share>, usize), DomainError> {
+        let shares = self
+            .read_shares()
+            .await
             .map_err(|e| DomainError::internal_error("Share", e.to_string()))?;
 
         // Filtra los enlaces del usuario
-        let user_shares: Vec<ShareRecord> = shares.into_iter()
+        let user_shares: Vec<ShareRecord> = shares
+            .into_iter()
             .filter(|s| s.created_by == user_id)
             .collect();
 
@@ -239,7 +269,8 @@ impl ShareStoragePort for ShareFsRepository {
         let total = user_shares.len();
 
         // Aplica la paginación
-        let paginated: Vec<Share> = user_shares.iter()
+        let paginated: Vec<Share> = user_shares
+            .iter()
             .skip(offset)
             .take(limit)
             .map(|record| self.to_entity(record))

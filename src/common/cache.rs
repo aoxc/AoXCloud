@@ -1,9 +1,9 @@
+use crate::common::errors::{DomainError, ErrorKind};
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use crate::common::errors::{DomainError, ErrorKind};
 
 /// Entrada de caché con tiempo de expiración
 #[derive(Debug, Clone)]
@@ -84,7 +84,7 @@ where
         // Insertar en la caché
         {
             let mut cache = self.cache.write().await;
-            
+
             // Si alcanzamos el límite, eliminar una entrada aleatoria
             if cache.len() >= self.max_entries {
                 if let Some(expired_key) = cache
@@ -97,7 +97,7 @@ where
                     cache.remove(&random_key);
                 }
             }
-            
+
             cache.insert(key.clone(), CacheEntry::new(value.clone(), self.ttl));
         }
 
@@ -132,14 +132,14 @@ where
     pub async fn cleanup_expired(&self) -> usize {
         let mut cache = self.cache.write().await;
         let initial_len = cache.len();
-        
+
         cache.retain(|_, v| !v.is_expired());
-        
+
         let removed = initial_len - cache.len();
         if removed > 0 {
             tracing::debug!("Removed {} expired cache entries", removed);
         }
-        
+
         removed
     }
 }
@@ -175,7 +175,11 @@ impl CacheManager {
 
     /// Obtiene o carga los metadatos de un archivo/carpeta
     #[allow(dead_code)]
-    pub async fn get_metadata<F>(&self, path: std::path::PathBuf, loader: F) -> Result<FileMetadata, DomainError>
+    pub async fn get_metadata<F>(
+        &self,
+        path: std::path::PathBuf,
+        loader: F,
+    ) -> Result<FileMetadata, DomainError>
     where
         F: FnOnce() -> Result<FileMetadata, std::io::Error>,
     {
@@ -184,7 +188,11 @@ impl CacheManager {
 
     /// Verifica o determina si un archivo/carpeta existe
     #[allow(dead_code)]
-    pub async fn check_exists<F>(&self, path: std::path::PathBuf, checker: F) -> Result<bool, DomainError>
+    pub async fn check_exists<F>(
+        &self,
+        path: std::path::PathBuf,
+        checker: F,
+    ) -> Result<bool, DomainError>
     where
         F: FnOnce() -> Result<bool, std::io::Error>,
     {
