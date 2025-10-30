@@ -13,7 +13,7 @@
 
 </div>
 
-## A lightweight, Rust-powered alternative to NextCloud
+## Spiral clarity meets cloud storage — built in Rust
 
 I built OxiCloud because I wanted a simpler, faster file storage solution than existing options. After struggling with NextCloud's performance on my home server, I decided to create something that prioritizes speed and simplicity while still being robust enough for daily use.
 
