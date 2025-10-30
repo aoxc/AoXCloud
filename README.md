@@ -1,123 +1,99 @@
+```html
 <p align="center">
-  <img src="static/oxicloud-logo.svg" alt="OxiCloud" width="375" />
+<img src="static/Copilot_20251030_135412.png" alt="AoXCloud Logo" width="375" />
 </p>
 
-<div align="center">
-  
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-  [![Latest Release](https://img.shields.io/github/release/diocrafts/OxiCloud.svg?style=for-the-badge)](https://github.com/diocrafts/OxiCloud/releases)
-  [![GitHub Stars](https://img.shields.io/github/stars/diocrafts/OxiCloud?style=for-the-badge&logo=github)](https://github.com/diocrafts/OxiCloud/stargazers)
-  [![GitHub Issues](https://img.shields.io/github/issues/diocrafts/OxiCloud?style=for-the-badge)](https://github.com/diocrafts/OxiCloud/issues)
-  [![GitHub Forks](https://img.shields.io/github/forks/diocrafts/OxiCloud?style=for-the-badge&logo=github)](https://github.com/diocrafts/OxiCloud/network/members)
-  [![Last Commit](https://img.shields.io/github/last-commit/diocrafts/OxiCloud?style=for-the-badge)](https://github.com/diocrafts/OxiCloud/commits/main)
+<p align="center">
+<a href="https://opensource.org/licenses/MIT">
+<img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge&logo=open-source-initiative" alt="License: MIT" />
+</a>
+<a href="https://github.com/aoxc/AoXCloud/releases">
+<img src="https://img.shields.io/github/release/aoxc/AoXCloud.svg?style=for-the-badge&logo=github" alt="Latest Release" />
+</a>
+<a href="https://github.com/aoxc/AoXCloud/stargazers">
+<img src="https://img.shields.io/github/stars/aoxc/AoXCloud?style=for-the-badge&logo=star" alt="GitHub Stars" />
+</a>
+<a href="https://github.com/aoxc/AoXCloud/issues">
+<img src="https://img.shields.io/github/issues/aoxc/AoXCloud?style=for-the-badge&logo=issue-tracking" alt="GitHub Issues" />
+</a>
+<a href="https://github.com/aoxc/AoXCloud/network/members">
+<img src="https://img.shields.io/github/forks/aoxc/AoXCloud?style=for-the-badge&logo=fork" alt="GitHub Forks" />
+</a>
+<a href="https://github.com/aoxc/AoXCloud/commits/main">
+<img src="https://img.shields.io/github/last-commit/aoxc/AoXCloud?style=for-the-badge&logo=git" alt="Last Commit" />
+</a>
+</p>
 
-</div>
+☁️ **AoXCloud — A Spiralized, Rust-Powered Alternative to NextCloud**
 
-## A lightweight, Rust-powered alternative to NextCloud
+AoXCloud is a lightweight, high-performance file storage platform built in Rust. Inspired by the need for simplicity, speed, and spiral clarity, it offers a modular, clean architecture that’s ideal for personal servers and ethical cloud deployments.
 
-I built OxiCloud because I wanted a simpler, faster file storage solution than existing options. After struggling with NextCloud's performance on my home server, I decided to create something that prioritizes speed and simplicity while still being robust enough for daily use.
+<p align="center">
+<img src="doc/images/Captura%20de%20pantalla%202025-03-23%20230739.png" alt="AoXCloud Dashboard Screenshot" width="600" />
+<br>
+<em>Elegant file and folder management through a responsive interface</em>
+</p>
 
-![OxiCloud Dashboard](doc/images/Captura%20de%20pantalla%202025-03-23%20230739.png)
+✨ Why AoXCloud?  
+⚡ **Lightweight** — Minimal resource usage, no PHP overhead  
+🖥️ **Responsive UI** — Fast and mobile-friendly interface  
+🦀 **Rust-Powered** — Memory safety and blazing speed  
+🧠 **Optimized Binary** — LTO for maximum performance  
+🔧 **Simple Setup** — Minimal configuration required  
+🌍 **Multilingual** — English & Spanish support built-in  
 
-*OxiCloud's straightforward interface for file and folder management*
+🛠️ Getting Started:  
+**Prerequisites:** Rust ≥ 1.70, PostgreSQL ≥ 13, 512MB RAM (1GB+ recommended)
 
-## ✨ What makes OxiCloud different?
-
-- **Lightweight**: Minimal resource requirements compared to PHP-based alternatives
-- **Responsive UI**: Clean, fast interface that works well on both desktop and mobile
-- **Rust Performance**: Built with Rust for memory safety and speed
-- **Optimized Binary**: Uses Link Time Optimization (LTO) for maximum performance
-- **Simple Setup**: Get running with minimal configuration
-- **Multilingual**: Full support for English and Spanish interfaces
-
-## 🛠️ Getting Started
-
-### Prerequisites
-- Rust 1.70+ and Cargo
-- PostgreSQL 13+ database
-- 512MB RAM minimum (1GB+ recommended)
-
-### Installation
-
-```bash
 # Clone the repository
-git clone https://github.com/DioCrafts/oxicloud.git
-cd oxicloud
+git clone https://github.com/aoxc/AoXCloud.git
+cd AoXCloud
 
-# Configure your database (create .env file with your PostgreSQL connection)
-echo "DATABASE_URL=postgres://username:password@localhost/oxicloud" > .env
+# Configure your database
+echo "DATABASE_URL=postgres://username:password@localhost/aoxcloud" > .env
 
-# Build the project
+# Build and run
 cargo build --release
-
-# Run database migrations
 cargo run --bin migrate --features migrations
-
-# Run the server
 cargo run --release
-```
 
-The server will be available at `http://localhost:8085`
+Server runs at http://localhost:8085
 
-## 🧩 Technical Implementation
+🧩 Architecture Overview:
+🧬 Domain Layer — Core entities and business logic
+🌀 Application Layer — Use cases and services
+🏗️ Infrastructure Layer — External systems and adapters
+🌐 Interfaces Layer — API routes and web controllers
 
-OxiCloud follows Clean Architecture principles with clear separation of concerns:
+🚧 Development Workflow:
+cargo build           # Compile project
+cargo run             # Run locally
+cargo check           # Quick compile check
 
-- **Domain Layer**: Core business logic and entities
-- **Application Layer**: Use cases and application services
-- **Infrastructure Layer**: External systems and implementations
-- **Interfaces Layer**: API and web controllers
+cargo build --release # Optimized build
+cargo run --release   # Run optimized
 
-The architecture makes it easy to extend functionality or swap components without affecting the core system.
+cargo test            # Run all tests
+cargo bench           # Run benchmarks
 
-## 🚧 Development
+cargo clippy          # Lint code
+cargo fmt             # Format code
 
-```bash
-# Core development workflow
-cargo build                 # Build the project
-cargo run                   # Run the project locally
-cargo check                 # Quick check for compilation errors
+RUST_LOG=debug cargo run  # Debug mode
 
-# Optimized builds
-cargo build --release       # Build with full optimization (LTO enabled)
-cargo run --release         # Run optimized build
+🗺️ Roadmap:
+🔐 Multi-user authentication (in progress)
+🔗 File sharing via links
+📂 WebDAV desktop integration
+🕒 File versioning
+📱 Mobile UI enhancements
+🗑️ Trash bin support (in progress)
 
-# Testing
-cargo test                  # Run all tests
-cargo test <test_name>      # Run a specific test
-cargo bench                 # Run benchmarks with optimized settings
+See TODO-LIST.md
+See CONTRIBUTING.md
+See CODE_OF_CONDUCT.md
 
-# Code quality
-cargo clippy                # Run linter
-cargo fmt                   # Format code
+📜 License:
+AoXCloud is licensed under MIT
 
-# Debugging
-RUST_LOG=debug cargo run    # Run with detailed logging
-```
-
-## 🗺️ Roadmap
-
-I'm actively working on improving OxiCloud with features that I need personally:
-
-- User authentication and multi-user support (in progress)
-- File sharing with simple links
-- WebDAV support for desktop integration
-- Basic file versioning
-- Simple mobile-friendly web interface enhancements
-- Trash bin functionality (in progress)
-
-See [TODO-LIST.md](TODO-LIST.md) for my current development priorities.
-
-## 🤝 Contributing
-
-Contributions are welcome! The project is still in early stages, so there's lots of room for improvement.
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information on how to contribute to OxiCloud. All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
-
-## 📜 License
-
-OxiCloud is available under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for more information.
-
----
-
-Built by a developer who just wanted better file storage. Feedback and contributions welcome!
+Built with spiral clarity by a developer who wanted better file storage. Let’s echo forward together 🌀
