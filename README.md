@@ -15,7 +15,7 @@
 
 ## Spiral clarity meets cloud storage — built in Rust
 
-I built AoXCloud because I wanted a simpler, faster file storage solution than existing options. After struggling with NextCloud's performance on my home server, I decided to create something that prioritizes speed and simplicity while still being robust enough for daily use.
+AoXCloud was born from a need for spiral clarity in file storage. I wanted a system that was fast, lightweight, and pedagogically clean — something I could run on my own server without the overhead of traditional cloud stacks.
 
 ![AoXCloud Dashboard](doc/images/Captura%20de%20pantalla%202025-03-23%20230739.png)
 
