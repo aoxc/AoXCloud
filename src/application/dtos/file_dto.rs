@@ -1,30 +1,30 @@
-use serde::{Serialize, Deserialize};
 use crate::domain::entities::file::File;
+use serde::{Deserialize, Serialize};
 
 /// DTO for file responses
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileDto {
     /// File ID
     pub id: String,
-    
+
     /// File name
     pub name: String,
-    
+
     /// Path to the file (relative)
     pub path: String,
-    
+
     /// Size in bytes
     pub size: u64,
-    
+
     /// MIME type
     pub mime_type: String,
-    
+
     /// Parent folder ID
     pub folder_id: Option<String>,
-    
+
     /// Creation timestamp
     pub created_at: u64,
-    
+
     /// Last modification timestamp
     pub modified_at: u64,
 }
@@ -51,14 +51,14 @@ impl From<FileDto> for File {
         // Nota: esto debe simplificarse si File tiene un constructor adecuado
         // Si no, deberías hacer la conversión de la mejor manera posible
         File::from_dto(
-            dto.id, 
-            dto.name, 
+            dto.id,
+            dto.name,
             dto.path,
             dto.size,
             dto.mime_type,
             dto.folder_id,
             dto.created_at,
-            dto.modified_at
+            dto.modified_at,
         )
     }
 }

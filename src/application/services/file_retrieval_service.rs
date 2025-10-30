@@ -1,7 +1,7 @@
-use std::sync::Arc;
 use async_trait::async_trait;
 use bytes::Bytes;
 use futures::Stream;
+use std::sync::Arc;
 
 use crate::application::dtos::file_dto::FileDto;
 use crate::application::ports::file_ports::FileRetrievalUseCase;
@@ -18,11 +18,13 @@ impl FileRetrievalService {
     pub fn new(file_repository: Arc<dyn FileReadPort>) -> Self {
         Self { file_repository }
     }
-    
+
     /// Crea un stub para pruebas
     pub fn default_stub() -> Self {
         Self {
-            file_repository: Arc::new(crate::infrastructure::repositories::FileFsReadRepository::default_stub())
+            file_repository: Arc::new(
+                crate::infrastructure::repositories::FileFsReadRepository::default_stub(),
+            ),
         }
     }
 }
@@ -33,17 +35,20 @@ impl FileRetrievalUseCase for FileRetrievalService {
         let file = self.file_repository.get_file(id).await?;
         Ok(FileDto::from(file))
     }
-    
+
     async fn list_files(&self, folder_id: Option<&str>) -> Result<Vec<FileDto>, DomainError> {
         let files = self.file_repository.list_files(folder_id).await?;
         Ok(files.into_iter().map(FileDto::from).collect())
     }
-    
+
     async fn get_file_content(&self, id: &str) -> Result<Vec<u8>, DomainError> {
         self.file_repository.get_file_content(id).await
     }
-    
-    async fn get_file_stream(&self, id: &str) -> Result<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>, DomainError> {
+
+    async fn get_file_stream(
+        &self,
+        id: &str,
+    ) -> Result<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>, DomainError> {
         self.file_repository.get_file_stream(id).await
     }
 }

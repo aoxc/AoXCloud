@@ -1,7 +1,7 @@
-use std::sync::Arc;
 use async_trait::async_trait;
 use bytes::Bytes;
 use futures::Stream;
+use std::sync::Arc;
 
 use crate::application::dtos::file_dto::FileDto;
 use crate::common::errors::DomainError;
@@ -24,23 +24,30 @@ pub trait FileUploadUseCase: Send + Sync + 'static {
 pub trait FileRetrievalUseCase: Send + Sync + 'static {
     /// Obtiene un archivo por su ID
     async fn get_file(&self, id: &str) -> Result<FileDto, DomainError>;
-    
+
     /// Lista archivos en una carpeta
     async fn list_files(&self, folder_id: Option<&str>) -> Result<Vec<FileDto>, DomainError>;
-    
+
     /// Obtiene contenido de archivo como bytes (para archivos pequeños)
     async fn get_file_content(&self, id: &str) -> Result<Vec<u8>, DomainError>;
-    
+
     /// Obtiene contenido de archivo como stream (para archivos grandes)
-    async fn get_file_stream(&self, id: &str) -> Result<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>, DomainError>;
+    async fn get_file_stream(
+        &self,
+        id: &str,
+    ) -> Result<Box<dyn Stream<Item = Result<Bytes, std::io::Error>> + Send>, DomainError>;
 }
 
 /// Puerto primario para operaciones de gestión de archivos
 #[async_trait]
 pub trait FileManagementUseCase: Send + Sync + 'static {
     /// Mueve un archivo a otra carpeta
-    async fn move_file(&self, file_id: &str, folder_id: Option<String>) -> Result<FileDto, DomainError>;
-    
+    async fn move_file(
+        &self,
+        file_id: &str,
+        folder_id: Option<String>,
+    ) -> Result<FileDto, DomainError>;
+
     /// Elimina un archivo
     async fn delete_file(&self, id: &str) -> Result<(), DomainError>;
 }

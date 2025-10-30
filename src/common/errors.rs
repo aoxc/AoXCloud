@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::error::Error as StdError;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use thiserror::Error;
 
 /// Tipo Result común para la aplicación con DomainError como error estándar
@@ -63,11 +63,7 @@ pub struct DomainError {
 
 impl DomainError {
     /// Crea un nuevo error de dominio
-    pub fn new<S: Into<String>>(
-        kind: ErrorKind,
-        entity_type: &'static str,
-        message: S,
-    ) -> Self {
+    pub fn new<S: Into<String>>(kind: ErrorKind, entity_type: &'static str, message: S) -> Self {
         Self {
             kind,
             entity_type,
@@ -103,11 +99,7 @@ impl DomainError {
 
     /// Crea un error para operaciones no soportadas
     pub fn operation_not_supported<S: Into<String>>(entity_type: &'static str, message: S) -> Self {
-        Self::new(
-            ErrorKind::UnsupportedOperation,
-            entity_type,
-            message,
-        )
+        Self::new(ErrorKind::UnsupportedOperation, entity_type, message)
     }
 
     /// Crea un error de tiempo agotado
@@ -120,7 +112,7 @@ impl DomainError {
             source: None,
         }
     }
-    
+
     /// Crea un error interno
     pub fn internal_error<S: Into<String>>(entity_type: &'static str, message: S) -> Self {
         Self {
@@ -131,7 +123,7 @@ impl DomainError {
             source: None,
         }
     }
-    
+
     /// Crea un error de acceso denegado
     pub fn access_denied<S: Into<String>>(entity_type: &'static str, message: S) -> Self {
         Self {
@@ -142,7 +134,7 @@ impl DomainError {
             source: None,
         }
     }
-    
+
     /// Alias for access_denied to maintain compatibility
     pub fn unauthorized<S: Into<String>>(message: S) -> Self {
         Self {
@@ -153,18 +145,18 @@ impl DomainError {
             source: None,
         }
     }
-    
+
     /// Crea un error de base de datos
     pub fn database_error<S: Into<String>>(message: S) -> Self {
         Self {
-            kind: ErrorKind::DatabaseError, 
+            kind: ErrorKind::DatabaseError,
             entity_type: "Database",
             entity_id: None,
             message: message.into(),
             source: None,
         }
     }
-    
+
     /// Crea un error de validación
     pub fn validation_error<S: Into<String>>(message: S) -> Self {
         Self {
@@ -175,7 +167,7 @@ impl DomainError {
             source: None,
         }
     }
-    
+
     /// Crea un error de funcionalidad no implementada
     pub fn not_implemented<S: Into<String>>(entity_type: &'static str, message: S) -> Self {
         Self {
@@ -209,7 +201,11 @@ pub trait ErrorContext<T, E> {
         F: FnOnce() -> C;
 
     #[allow(dead_code)]
-    fn with_error_kind(self, kind: ErrorKind, entity_type: &'static str) -> std::result::Result<T, DomainError>;
+    fn with_error_kind(
+        self,
+        kind: ErrorKind,
+        entity_type: &'static str,
+    ) -> std::result::Result<T, DomainError>;
 }
 
 impl<T, E: StdError + Send + Sync + 'static> ErrorContext<T, E> for std::result::Result<T, E> {
@@ -218,26 +214,26 @@ impl<T, E: StdError + Send + Sync + 'static> ErrorContext<T, E> for std::result:
         C: Into<String>,
         F: FnOnce() -> C,
     {
-        self.map_err(|e| {
-            DomainError {
-                kind: ErrorKind::InternalError,
-                entity_type: "Unknown",
-                entity_id: None,
-                message: context().into(),
-                source: Some(Box::new(e)),
-            }
+        self.map_err(|e| DomainError {
+            kind: ErrorKind::InternalError,
+            entity_type: "Unknown",
+            entity_id: None,
+            message: context().into(),
+            source: Some(Box::new(e)),
         })
     }
 
-    fn with_error_kind(self, kind: ErrorKind, entity_type: &'static str) -> std::result::Result<T, DomainError> {
-        self.map_err(|e| {
-            DomainError {
-                kind,
-                entity_type,
-                entity_id: None,
-                message: format!("{}", e),
-                source: Some(Box::new(e)),
-            }
+    fn with_error_kind(
+        self,
+        kind: ErrorKind,
+        entity_type: &'static str,
+    ) -> std::result::Result<T, DomainError> {
+        self.map_err(|e| DomainError {
+            kind,
+            entity_type,
+            entity_id: None,
+            message: format!("{}", e),
+            source: Some(Box::new(e)),
         })
     }
 }
@@ -283,44 +279,64 @@ pub struct ErrorResponse {
 }
 
 impl AppError {
-    pub fn new(status_code: axum::http::StatusCode, message: impl Into<String>, error_type: impl Into<String>) -> Self {
+    pub fn new(
+        status_code: axum::http::StatusCode,
+        message: impl Into<String>,
+        error_type: impl Into<String>,
+    ) -> Self {
         Self {
             status_code,
             message: message.into(),
             error_type: error_type.into(),
         }
     }
-    
+
     pub fn bad_request(message: impl Into<String>) -> Self {
         Self::new(axum::http::StatusCode::BAD_REQUEST, message, "BadRequest")
     }
-    
+
     pub fn unauthorized(message: impl Into<String>) -> Self {
-        Self::new(axum::http::StatusCode::UNAUTHORIZED, message, "Unauthorized")
+        Self::new(
+            axum::http::StatusCode::UNAUTHORIZED,
+            message,
+            "Unauthorized",
+        )
     }
-    
+
     pub fn forbidden(message: impl Into<String>) -> Self {
         Self::new(axum::http::StatusCode::FORBIDDEN, message, "Forbidden")
     }
-    
+
     pub fn not_found(message: impl Into<String>) -> Self {
         Self::new(axum::http::StatusCode::NOT_FOUND, message, "NotFound")
     }
-    
+
     pub fn internal_error(message: impl Into<String>) -> Self {
-        Self::new(axum::http::StatusCode::INTERNAL_SERVER_ERROR, message, "InternalError")
+        Self::new(
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            message,
+            "InternalError",
+        )
     }
-    
+
     pub fn method_not_allowed(message: impl Into<String>) -> Self {
-        Self::new(axum::http::StatusCode::METHOD_NOT_ALLOWED, message, "MethodNotAllowed")
+        Self::new(
+            axum::http::StatusCode::METHOD_NOT_ALLOWED,
+            message,
+            "MethodNotAllowed",
+        )
     }
-    
+
     pub fn conflict(message: impl Into<String>) -> Self {
         Self::new(axum::http::StatusCode::CONFLICT, message, "Conflict")
     }
-    
+
     pub fn unsupported_media_type(message: impl Into<String>) -> Self {
-        Self::new(axum::http::StatusCode::UNSUPPORTED_MEDIA_TYPE, message, "UnsupportedMediaType")
+        Self::new(
+            axum::http::StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            message,
+            "UnsupportedMediaType",
+        )
     }
 }
 
@@ -337,7 +353,7 @@ impl From<DomainError> for AppError {
             ErrorKind::UnsupportedOperation => axum::http::StatusCode::METHOD_NOT_ALLOWED,
             ErrorKind::DatabaseError => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
         };
-        
+
         Self {
             status_code,
             message: err.message,
@@ -354,7 +370,7 @@ impl axum::response::IntoResponse for AppError {
             message: self.message,
             error_type: self.error_type,
         };
-        
+
         let body = axum::Json(error_response);
         (status, body).into_response()
     }

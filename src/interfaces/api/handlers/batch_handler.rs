@@ -1,16 +1,16 @@
-use std::sync::Arc;
 use axum::{
-    extract::{State, Json},
-    response::IntoResponse,
+    extract::{Json, State},
     http::StatusCode,
+    response::IntoResponse,
 };
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
-use crate::application::services::batch_operations::{
-    BatchOperationService, BatchResult, BatchStats
-};
 use crate::application::dtos::file_dto::FileDto;
 use crate::application::dtos::folder_dto::FolderDto;
+use crate::application::services::batch_operations::{
+    BatchOperationService, BatchResult, BatchStats,
+};
 use crate::interfaces::api::handlers::ApiResult;
 
 /// Estado compartido para el handler de batch
@@ -112,11 +112,13 @@ where
 {
     fn from(result: BatchResult<T>) -> Self {
         let successful = result.successful.into_iter().map(U::from).collect();
-        
-        let failed = result.failed.into_iter()
+
+        let failed = result
+            .failed
+            .into_iter()
             .map(|(id, error)| FailedOperation { id, error })
             .collect();
-        
+
         Self {
             successful,
             failed,
@@ -136,19 +138,21 @@ pub async fn move_files_batch(
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({
                 "error": "No file IDs provided"
-            }))
-        ).into_response());
+            })),
+        )
+            .into_response());
     }
-    
+
     // Ejecutar operación de lote
-    let result = state.batch_service
+    let result = state
+        .batch_service
         .move_files(request.file_ids, request.target_folder_id)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    
+
     // Convertir resultado a DTO
     let response: BatchOperationResponse<FileDto> = result.into();
-    
+
     // Determinar código de estado basado en los resultados
     let status_code = if response.stats.failed > 0 {
         if response.stats.successful > 0 {
@@ -159,7 +163,7 @@ pub async fn move_files_batch(
     } else {
         StatusCode::OK // Todas exitosas
     };
-    
+
     Ok((status_code, Json(response)).into_response())
 }
 
@@ -174,19 +178,21 @@ pub async fn copy_files_batch(
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({
                 "error": "No file IDs provided"
-            }))
-        ).into_response());
+            })),
+        )
+            .into_response());
     }
-    
+
     // Ejecutar operación de lote
-    let result = state.batch_service
+    let result = state
+        .batch_service
         .copy_files(request.file_ids, request.target_folder_id)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    
+
     // Convertir resultado a DTO
     let response: BatchOperationResponse<FileDto> = result.into();
-    
+
     // Determinar código de estado basado en los resultados
     let status_code = if response.stats.failed > 0 {
         if response.stats.successful > 0 {
@@ -197,7 +203,7 @@ pub async fn copy_files_batch(
     } else {
         StatusCode::OK // Todas exitosas
     };
-    
+
     Ok((status_code, Json(response)).into_response())
 }
 
@@ -212,25 +218,29 @@ pub async fn delete_files_batch(
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({
                 "error": "No file IDs provided"
-            }))
-        ).into_response());
+            })),
+        )
+            .into_response());
     }
-    
+
     // Ejecutar operación de lote
-    let result = state.batch_service
+    let result = state
+        .batch_service
         .delete_files(request.file_ids)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    
+
     // Crear respuesta personalizada para IDs de string
     let response = BatchOperationResponse {
         successful: result.successful,
-        failed: result.failed.into_iter()
+        failed: result
+            .failed
+            .into_iter()
             .map(|(id, error)| FailedOperation { id, error })
             .collect(),
         stats: result.stats.into(),
     };
-    
+
     // Determinar código de estado basado en los resultados
     let status_code = if response.stats.failed > 0 {
         if response.stats.successful > 0 {
@@ -241,7 +251,7 @@ pub async fn delete_files_batch(
     } else {
         StatusCode::OK // Todas exitosas
     };
-    
+
     Ok((status_code, Json(response)).into_response())
 }
 
@@ -256,25 +266,29 @@ pub async fn delete_folders_batch(
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({
                 "error": "No folder IDs provided"
-            }))
-        ).into_response());
+            })),
+        )
+            .into_response());
     }
-    
+
     // Ejecutar operación de lote
-    let result = state.batch_service
+    let result = state
+        .batch_service
         .delete_folders(request.folder_ids, request.recursive)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    
+
     // Crear respuesta personalizada para IDs de string
     let response = BatchOperationResponse {
         successful: result.successful,
-        failed: result.failed.into_iter()
+        failed: result
+            .failed
+            .into_iter()
             .map(|(id, error)| FailedOperation { id, error })
             .collect(),
         stats: result.stats.into(),
     };
-    
+
     // Determinar código de estado basado en los resultados
     let status_code = if response.stats.failed > 0 {
         if response.stats.successful > 0 {
@@ -285,7 +299,7 @@ pub async fn delete_folders_batch(
     } else {
         StatusCode::OK // Todas exitosas
     };
-    
+
     Ok((status_code, Json(response)).into_response())
 }
 
@@ -300,25 +314,28 @@ pub async fn create_folders_batch(
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({
                 "error": "No folders provided"
-            }))
-        ).into_response());
+            })),
+        )
+            .into_response());
     }
-    
+
     // Transformar el formato para el servicio
-    let folders = request.folders
+    let folders = request
+        .folders
         .into_iter()
         .map(|detail| (detail.name, detail.parent_id))
         .collect();
-    
+
     // Ejecutar operación de lote
-    let result = state.batch_service
+    let result = state
+        .batch_service
         .create_folders(folders)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    
+
     // Convertir resultado a DTO
     let response: BatchOperationResponse<FolderDto> = result.into();
-    
+
     // Determinar código de estado basado en los resultados
     let status_code = if response.stats.failed > 0 {
         if response.stats.successful > 0 {
@@ -329,7 +346,7 @@ pub async fn create_folders_batch(
     } else {
         StatusCode::CREATED // Todas exitosas
     };
-    
+
     Ok((status_code, Json(response)).into_response())
 }
 
@@ -344,19 +361,21 @@ pub async fn get_files_batch(
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({
                 "error": "No file IDs provided"
-            }))
-        ).into_response());
+            })),
+        )
+            .into_response());
     }
-    
+
     // Ejecutar operación de lote
-    let result = state.batch_service
+    let result = state
+        .batch_service
         .get_multiple_files(request.file_ids)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    
+
     // Convertir resultado a DTO
     let response: BatchOperationResponse<FileDto> = result.into();
-    
+
     // Determinar código de estado basado en los resultados
     let status_code = if response.stats.failed > 0 {
         if response.stats.successful > 0 {
@@ -367,7 +386,7 @@ pub async fn get_files_batch(
     } else {
         StatusCode::OK // Todas exitosas
     };
-    
+
     Ok((status_code, Json(response)).into_response())
 }
 
@@ -382,19 +401,21 @@ pub async fn get_folders_batch(
             StatusCode::BAD_REQUEST,
             Json(serde_json::json!({
                 "error": "No folder IDs provided"
-            }))
-        ).into_response());
+            })),
+        )
+            .into_response());
     }
-    
+
     // Ejecutar operación de lote
-    let result = state.batch_service
+    let result = state
+        .batch_service
         .get_multiple_folders(request.folder_ids)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    
+
     // Convertir resultado a DTO
     let response: BatchOperationResponse<FolderDto> = result.into();
-    
+
     // Determinar código de estado basado en los resultados
     let status_code = if response.stats.failed > 0 {
         if response.stats.successful > 0 {
@@ -405,6 +426,6 @@ pub async fn get_folders_batch(
     } else {
         StatusCode::OK // Todas exitosas
     };
-    
+
     Ok((status_code, Json(response)).into_response())
 }

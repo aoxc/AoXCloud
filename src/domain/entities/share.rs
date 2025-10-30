@@ -41,7 +41,7 @@ pub enum ShareError {
 
 impl Share {
     pub fn new(
-        item_id: String, 
+        item_id: String,
         item_type: ShareItemType,
         created_by: String,
         permissions: Option<SharePermissions>,
@@ -50,7 +50,9 @@ impl Share {
     ) -> Result<Self, ShareError> {
         // Validate item_id
         if item_id.is_empty() {
-            return Err(ShareError::ValidationError("Item ID cannot be empty".to_string()));
+            return Err(ShareError::ValidationError(
+                "Item ID cannot be empty".to_string(),
+            ));
         }
 
         // Validate expiration date if provided
@@ -59,9 +61,11 @@ impl Share {
                 .duration_since(UNIX_EPOCH)
                 .expect("Time went backwards")
                 .as_secs();
-            
+
             if expires <= now {
-                return Err(ShareError::InvalidExpiration("Expiration date must be in the future".to_string()));
+                return Err(ShareError::InvalidExpiration(
+                    "Expiration date must be in the future".to_string(),
+                ));
             }
         }
 
@@ -114,10 +118,10 @@ impl Share {
                 .duration_since(UNIX_EPOCH)
                 .expect("Time went backwards")
                 .as_secs();
-            
+
             return expires_at <= now;
         }
-        
+
         false
     }
 
@@ -164,7 +168,10 @@ impl TryFrom<&str> for ShareItemType {
         match s.to_lowercase().as_str() {
             "file" => Ok(ShareItemType::File),
             "folder" => Ok(ShareItemType::Folder),
-            _ => Err(ShareError::ValidationError(format!("Invalid item type: {}", s))),
+            _ => Err(ShareError::ValidationError(format!(
+                "Invalid item type: {}",
+                s
+            ))),
         }
     }
 }
@@ -202,7 +209,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards")
             .as_secs();
-        
+
         // Create a share that expires in the future
         let future = now + 3600; // 1 hour in the future
         let share = Share::new(
@@ -214,9 +221,9 @@ mod tests {
             Some(future),
         )
         .unwrap();
-        
+
         assert!(!share.is_expired());
-        
+
         // Test with past expiration (should fail during creation)
         let past = now - 3600; // 1 hour in the past
         let share_result = Share::new(
@@ -227,18 +234,27 @@ mod tests {
             None,
             Some(past),
         );
-        
+
         assert!(share_result.is_err());
     }
-    
+
     #[test]
     fn test_share_item_type_conversion() {
         assert_eq!(ShareItemType::File.to_string(), "file");
         assert_eq!(ShareItemType::Folder.to_string(), "folder");
-        
-        assert_eq!(ShareItemType::try_from("file").unwrap(), ShareItemType::File);
-        assert_eq!(ShareItemType::try_from("folder").unwrap(), ShareItemType::Folder);
-        assert_eq!(ShareItemType::try_from("FILE").unwrap(), ShareItemType::File);
+
+        assert_eq!(
+            ShareItemType::try_from("file").unwrap(),
+            ShareItemType::File
+        );
+        assert_eq!(
+            ShareItemType::try_from("folder").unwrap(),
+            ShareItemType::Folder
+        );
+        assert_eq!(
+            ShareItemType::try_from("FILE").unwrap(),
+            ShareItemType::File
+        );
         assert!(ShareItemType::try_from("invalid").is_err());
     }
 }

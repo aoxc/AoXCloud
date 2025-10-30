@@ -1,11 +1,11 @@
-use std::sync::Arc;
 use async_trait::async_trait;
+use std::sync::Arc;
 
 use crate::application::dtos::file_dto::FileDto;
 use crate::application::ports::file_ports::FileUploadUseCase;
 use crate::application::ports::storage_ports::FileWritePort;
-use crate::common::errors::DomainError;
 use crate::application::ports::storage_ports::StorageUsagePort;
+use crate::common::errors::DomainError;
 use tracing::{debug, warn};
 
 /// Helper function to extract username from folder path string
@@ -14,13 +14,13 @@ fn extract_username_from_path(path: &str) -> Option<String> {
     if !path.contains("Mi Carpeta - ") {
         return None;
     }
-    
+
     // Split by the pattern and get the second part
     let parts: Vec<&str> = path.split("Mi Carpeta - ").collect();
     if parts.len() <= 1 {
         return None;
     }
-    
+
     // Trim and return as owned String
     Some(parts[1].trim().to_string())
 }
@@ -34,25 +34,27 @@ pub struct FileUploadService {
 impl FileUploadService {
     /// Crea un nuevo servicio de subida de archivos
     pub fn new(file_repository: Arc<dyn FileWritePort>) -> Self {
-        Self { 
+        Self {
             file_repository,
             storage_usage_service: None,
         }
     }
-    
+
     /// Configura el servicio de uso de almacenamiento
     pub fn with_storage_usage_service(
-        mut self, 
-        storage_usage_service: Arc<dyn StorageUsagePort>
+        mut self,
+        storage_usage_service: Arc<dyn StorageUsagePort>,
     ) -> Self {
         self.storage_usage_service = Some(storage_usage_service);
         self
     }
-    
+
     /// Crea un stub para pruebas
     pub fn default_stub() -> Self {
         Self {
-            file_repository: Arc::new(crate::infrastructure::repositories::FileFsWriteRepository::default_stub()),
+            file_repository: Arc::new(
+                crate::infrastructure::repositories::FileFsWriteRepository::default_stub(),
+            ),
             storage_usage_service: None,
         }
     }
@@ -68,20 +70,27 @@ impl FileUploadUseCase for FileUploadService {
         content: Vec<u8>,
     ) -> Result<FileDto, DomainError> {
         // Upload the file
-        let file = self.file_repository.save_file(name, folder_id, content_type, content).await?;
-        
+        let file = self
+            .file_repository
+            .save_file(name, folder_id, content_type, content)
+            .await?;
+
         // Extract the owner's user ID if available
         // We could make this more explicit by adding a user_id parameter
         if let Some(storage_service) = &self.storage_usage_service {
             // Extract user ID from folder pattern 'Mi Carpeta - {username}'
             if let Some(folder_id) = file.folder_id() {
-                // Since we don't have direct access to folder details, 
+                // Since we don't have direct access to folder details,
                 // we'll use pattern matching on the folder ID
                 // In a more complete implementation, we would use a folder repository
                 let folder_id_str = folder_id;
-                
+
                 // Check if we can extract a username from context
-                if let Ok(folder_path) = self.file_repository.get_folder_path_str(folder_id_str).await {
+                if let Ok(folder_path) = self
+                    .file_repository
+                    .get_folder_path_str(folder_id_str)
+                    .await
+                {
                     // Process the string to extract username without creating borrowing issues
                     if let Some(username) = extract_username_from_path(&folder_path) {
                         // Find user by username and update their storage usage
@@ -90,8 +99,11 @@ impl FileUploadUseCase for FileUploadService {
                         tokio::spawn(async move {
                             match service_clone.update_user_storage_usage(&username).await {
                                 Ok(usage) => {
-                                    debug!("Updated storage usage for user {} to {} bytes", username, usage);
-                                },
+                                    debug!(
+                                        "Updated storage usage for user {} to {} bytes",
+                                        username, usage
+                                    );
+                                }
                                 Err(e) => {
                                     warn!("Failed to update storage usage for {}: {}", username, e);
                                 }
@@ -103,7 +115,7 @@ impl FileUploadUseCase for FileUploadService {
                 }
             }
         }
-        
+
         Ok(FileDto::from(file))
     }
 }

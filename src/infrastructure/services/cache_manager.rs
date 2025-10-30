@@ -1,10 +1,10 @@
+use futures::future::BoxFuture;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::time;
-use futures::future::BoxFuture;
 use tokio::sync::RwLock;
+use tokio::time;
 
 /// Representación de metadatos en caché
 #[derive(Debug, Clone)]
@@ -46,17 +46,17 @@ impl StorageCacheManager {
             max_entries,
         }
     }
-    
+
     /// Crea una instancia por defecto del gestor de caché
     #[allow(dead_code)]
     pub fn default() -> Self {
         Self::new(
-            60_000,    // 1 minuto para archivos
-            300_000,   // 5 minutos para directorios
-            10_000,    // máximo 10,000 entradas
+            60_000,  // 1 minuto para archivos
+            300_000, // 5 minutos para directorios
+            10_000,  // máximo 10,000 entradas
         )
     }
-    
+
     /// Verifica si un archivo o directorio existe en caché
     #[allow(dead_code)]
     pub async fn check_exists(&self, path: &PathBuf, _is_dir: bool) -> Result<bool, ()> {
@@ -64,44 +64,51 @@ impl StorageCacheManager {
         if let Some(metadata) = self.get_cached_metadata(path).await {
             return Ok(metadata.exists);
         }
-        
+
         // No está en caché
         Err(())
     }
-    
+
     /// Obtiene los metadatos de un path desde la caché
     #[allow(dead_code)]
     async fn get_cached_metadata(&self, path: &PathBuf) -> Option<CachedMetadata> {
         let cache = self.cache.read().await;
-        
+
         if let Some(metadata) = cache.get(path) {
             // Verificar si la entrada expiró
             if Instant::now() < metadata.expires_at {
                 return Some(metadata.clone());
             }
         }
-        
+
         None
     }
-    
+
     /// Actualiza la caché con los metadatos de un path
     #[allow(dead_code)]
-    pub async fn update_cache(&self, path: &PathBuf, exists: bool, size: Option<u64>, 
-                             created_at: Option<u64>, modified_at: Option<u64>, is_dir: bool) {
+    pub async fn update_cache(
+        &self,
+        path: &PathBuf,
+        exists: bool,
+        size: Option<u64>,
+        created_at: Option<u64>,
+        modified_at: Option<u64>,
+        is_dir: bool,
+    ) {
         let mut cache = self.cache.write().await;
-        
+
         // Si la caché está llena, eliminar entradas aleatorias antes de agregar
         if cache.len() >= self.max_entries {
             self.evict_entries(&mut cache, 100).await;
         }
-        
+
         // Determinar TTL basado en si es archivo o directorio
         let ttl = if is_dir {
             Duration::from_millis(self.dir_ttl_ms)
         } else {
             Duration::from_millis(self.file_ttl_ms)
         };
-        
+
         // Crear metadatos y agregar a la caché
         let metadata = CachedMetadata {
             exists,
@@ -110,80 +117,80 @@ impl StorageCacheManager {
             modified_at,
             expires_at: Instant::now() + ttl,
         };
-        
+
         cache.insert(path.clone(), metadata);
     }
-    
+
     /// Elimina entradas aleatorias de la caché cuando está llena
     #[allow(dead_code)]
     async fn evict_entries(&self, cache: &mut HashMap<PathBuf, CachedMetadata>, count: usize) {
         // Obtener las entradas más antiguas para eliminar
         let mut entries: Vec<_> = cache.keys().cloned().collect();
-        
+
         // Limitar el número de entradas a eliminar
         let to_remove = count.min(entries.len() / 10);
-        
+
         if to_remove == 0 {
             return;
         }
-        
+
         // Eliminar las primeras entradas (implementación simple)
         entries.truncate(to_remove);
-        
+
         for path in entries {
             cache.remove(&path);
         }
     }
-    
+
     /// Inicia una tarea de limpieza periódica
     #[allow(dead_code)]
     pub fn start_cleanup_task(cache_manager: Arc<Self>) -> BoxFuture<'static, ()> {
         Box::pin(async move {
             let interval = Duration::from_secs(60); // Ejecutar cada minuto
-            
+
             loop {
                 time::sleep(interval).await;
-                
+
                 // Limpiar entradas expiradas
                 let now = Instant::now();
                 let mut cache = cache_manager.cache.write().await;
-                
+
                 // Encontrar entradas expiradas
                 let expired: Vec<_> = cache
                     .iter()
                     .filter(|(_, metadata)| now > metadata.expires_at)
                     .map(|(path, _)| path.clone())
                     .collect();
-                
+
                 // Eliminar entradas expiradas
                 for path in expired {
                     cache.remove(&path);
                 }
-                
+
                 // Registrar estadísticas
                 let cache_size = cache.len();
                 drop(cache);
-                
+
                 tracing::debug!("Cache cleanup completed. Entries remaining: {}", cache_size);
             }
         })
     }
-    
+
     /// Invalida una entrada específica de la caché
     #[allow(dead_code)]
     pub async fn invalidate(&self, path: &PathBuf) {
         let mut cache = self.cache.write().await;
         cache.remove(path);
     }
-    
+
     /// Invalida todas las entradas de la caché relacionadas con una carpeta
     #[allow(dead_code)]
     pub async fn invalidate_folder(&self, folder_path: &PathBuf) {
         let mut cache = self.cache.write().await;
-        
+
         // Eliminar entradas que sean descendientes de la carpeta
         let folder_str = folder_path.to_string_lossy().to_string();
-        
+
         // Encontrar entradas a eliminar
         let to_remove: Vec<_> = cache
             .keys()
@@ -196,13 +203,13 @@ impl StorageCacheManager {
                 }
             })
             .collect();
-        
+
         // Eliminar las entradas
         for path in to_remove {
             cache.remove(&path);
         }
     }
-    
+
     /// Obtiene el número actual de entradas en la caché
     #[allow(dead_code)]
     pub async fn cache_size(&self) -> usize {
