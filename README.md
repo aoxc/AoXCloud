@@ -1,27 +1,27 @@
 <p align="center">
-  <img src="static/Copilot_20251030_135412.png" alt="OxiCloud" width="375" />
+  <img src="static/Copilot_20251030_135412.png" alt="AoXCloud" width="375" />
 </p>
 
 <div align="center">
   
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-  [![Latest Release](https://img.shields.io/github/release/diocrafts/OxiCloud.svg?style=for-the-badge)](https://github.com/diocrafts/OxiCloud/releases)
-  [![GitHub Stars](https://img.shields.io/github/stars/diocrafts/OxiCloud?style=for-the-badge&logo=github)](https://github.com/diocrafts/OxiCloud/stargazers)
-  [![GitHub Issues](https://img.shields.io/github/issues/diocrafts/OxiCloud?style=for-the-badge)](https://github.com/diocrafts/OxiCloud/issues)
-  [![GitHub Forks](https://img.shields.io/github/forks/diocrafts/OxiCloud?style=for-the-badge&logo=github)](https://github.com/diocrafts/OxiCloud/network/members)
-  [![Last Commit](https://img.shields.io/github/last-commit/diocrafts/OxiCloud?style=for-the-badge)](https://github.com/diocrafts/OxiCloud/commits/main)
+  [![Latest Release](https://img.shields.io/github/release/diocrafts/AoXCloud.svg?style=for-the-badge)](https://github.com/diocrafts/AoXCloud/releases)
+  [![GitHub Stars](https://img.shields.io/github/stars/diocrafts/AoXCloud?style=for-the-badge&logo=github)](https://github.com/diocrafts/AoXCloud/stargazers)
+  [![GitHub Issues](https://img.shields.io/github/issues/diocrafts/AoXCloud?style=for-the-badge)](https://github.com/diocrafts/AoXCloud/issues)
+  [![GitHub Forks](https://img.shields.io/github/forks/diocrafts/AoXCloud?style=for-the-badge&logo=github)](https://github.com/diocrafts/AoXCloud/network/members)
+  [![Last Commit](https://img.shields.io/github/last-commit/diocrafts/AoXCloud?style=for-the-badge)](https://github.com/diocrafts/AoXCloud/commits/main)
 
 </div>
 
 ## Spiral clarity meets cloud storage — built in Rust
 
-I built OxiCloud because I wanted a simpler, faster file storage solution than existing options. After struggling with NextCloud's performance on my home server, I decided to create something that prioritizes speed and simplicity while still being robust enough for daily use.
+I built AoXCloud because I wanted a simpler, faster file storage solution than existing options. After struggling with NextCloud's performance on my home server, I decided to create something that prioritizes speed and simplicity while still being robust enough for daily use.
 
-![OxiCloud Dashboard](doc/images/Captura%20de%20pantalla%202025-03-23%20230739.png)
+![AoXCloud Dashboard](doc/images/Captura%20de%20pantalla%202025-03-23%20230739.png)
 
-*OxiCloud's straightforward interface for file and folder management*
+*AoXCloud's straightforward interface for file and folder management*
 
-## ✨ What makes OxiCloud different?
+## ✨ What makes AoXCloud different?
 
 - **Lightweight**: Minimal resource requirements compared to PHP-based alternatives
 - **Responsive UI**: Clean, fast interface that works well on both desktop and mobile
@@ -41,11 +41,11 @@ I built OxiCloud because I wanted a simpler, faster file storage solution than e
 
 ```bash
 # Clone the repository
-git clone https://github.com/DioCrafts/oxicloud.git
-cd oxicloud
+git clone https://github.com/DioCrafts/AoXCloud.git
+cd AoXCloud
 
 # Configure your database (create .env file with your PostgreSQL connection)
-echo "DATABASE_URL=postgres://username:password@localhost/oxicloud" > .env
+echo "DATABASE_URL=postgres://username:password@localhost/AoXCloud" > .env
 
 # Build the project
 cargo build --release
@@ -61,7 +61,7 @@ The server will be available at `http://localhost:8085`
 
 ## 🧩 Technical Implementation
 
-OxiCloud follows Clean Architecture principles with clear separation of concerns:
+AoXCloud follows Clean Architecture principles with clear separation of concerns:
 
 - **Domain Layer**: Core business logic and entities
 - **Application Layer**: Use cases and application services
@@ -97,7 +97,7 @@ RUST_LOG=debug cargo run    # Run with detailed logging
 
 ## 🗺️ Roadmap
 
-I'm actively working on improving OxiCloud with features that I need personally:
+I'm actively working on improving AoXCloud with features that I need personally:
 
 - User authentication and multi-user support (in progress)
 - File sharing with simple links
@@ -112,11 +112,11 @@ See [TODO-LIST.md](TODO-LIST.md) for my current development priorities.
 
 Contributions are welcome! The project is still in early stages, so there's lots of room for improvement.
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information on how to contribute to OxiCloud. All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information on how to contribute to AoXCloud. All contributors are expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## 📜 License
 
-OxiCloud is available under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for more information.
+AoXCloud is available under the [MIT License](LICENSE). See the [LICENSE](LICENSE) file for more information.
 
 ---
 
